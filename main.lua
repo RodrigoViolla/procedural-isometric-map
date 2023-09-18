@@ -26,10 +26,8 @@ end
 function love.draw()
     love.graphics.setBackgroundColor(0, 0, 0);
 
-    -- TileMap:draw(false, tileWidth, tileHeight, tileSize + 1, camX, camY, 0, 0, 0.9, 0.9 , 0.7, 1, 0.9, 0.9);
     renderMap();
-    -- drawPerlinNoise();
-
+    
     birdAnimX = birdAnimX + 0.05;
     birdAnimY = birdAnimY + 0.05;
 
@@ -352,17 +350,21 @@ function love.update()
 
     if love.keyboard.isDown("a") then
         globalX = globalX - step;
+        globalY = globalY + step;
     end
 
     if love.keyboard.isDown("d") then
         globalX = globalX + step;
+        globalY = globalY - step;
     end
 
     if love.keyboard.isDown("w") then
+        globalX = globalX - step;
         globalY = globalY - step;
     end
 
     if love.keyboard.isDown("s") then
+        globalX = globalX + step;
         globalY = globalY + step;
     end
 
