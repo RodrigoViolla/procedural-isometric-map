@@ -1,5 +1,3 @@
-require "TileMap";
-
 inclination = 0;
 tileSize = 60;
 globalX = 1;
@@ -19,12 +17,12 @@ cloudAnimX = 0;
 cloudAnimY = 0;
 
 function love.load()
+    love.graphics.setBackgroundColor(0, 0, 1); 
     love.window.setMode(resolutionX, resolutionY);
     -- love.window.setFullscreen(true);
 end
 
 function love.draw()
-    love.graphics.setBackgroundColor(0, 0, 0);
     renderMap();
     renderClouds();
 end
