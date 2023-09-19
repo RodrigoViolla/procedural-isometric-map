@@ -15,8 +15,8 @@ globalWaterLimit = 0.5;
 waterAnimX = 0;
 waterAnimY = 1;
 
-birdAnimX = 0;
-birdAnimY = 0;
+cloudAnimX = 0;
+cloudAnimY = 0;
 
 function love.load()
     love.window.setMode(resolutionX, resolutionY);
@@ -25,43 +25,8 @@ end
 
 function love.draw()
     love.graphics.setBackgroundColor(0, 0, 0);
-
     renderMap();
-    
-    birdAnimX = birdAnimX + 0.05;
-    birdAnimY = birdAnimY + 0.05;
-
-    if (birdAnimX > 1000) then
-        birdAnimX = 0;
-    end
-
-    if (birdAnimY > 1000) then
-        birdAnimY = 0;
-    end
-
-    for x = 0, love.graphics.getWidth() / 10 do
-        for y = 0, love.graphics.getHeight() / 10 do
-            birdNoise = smoothedNoise((x + globalX + birdAnimX) / 100, ((y + globalY + birdAnimY) / 100));
-            if (birdNoise < 0.4) then
-                -- drawBird(((x - y) * 10) + love.graphics.getWidth() / 2, (((x + y) * 10) - love.graphics.getHeight() / 2));
-                love.graphics.setColor(1, 1, 1, 0.2);
-                love.graphics.setPointSize(20);
-                love.graphics.points(((x - y) * 10) + love.graphics.getWidth() / 2,
-                    ((x + y) * 10) - love.graphics.getHeight() / 2);
-            end
-        end
-    end
-end
-
-function drawBird(x, y)
-    love.graphics.setColor(1, 1, 1);
-    y = y + smoothedNoise(x, y) * 100;
-    x = x + smoothedNoise(x, y) * 100;
-    local curve = love.math.newBezierCurve({x - 5, y + 5, x, y, x + 5, y + 5});
-    local curve2 = love.math.newBezierCurve({x + 5, y + 5, x + 10, y, x + 15, y + 5});
-
-    love.graphics.line(curve:render());
-    love.graphics.line(curve2:render());
+    renderClouds();
 end
 
 function printOnScreen(text)
@@ -118,6 +83,7 @@ function renderMap(seed)
         waterAnimY = 0;
     end
 
+    water = false
     for x = 0, size do
         for y = 0, size do
             multiplier = 450;
@@ -142,6 +108,7 @@ function renderMap(seed)
             waterLimit = globalWaterLimit;
 
             if (waterNoise1 < waterLimit or waterNoise2 < waterLimit) then
+                water = true
                 waterNoiseAnim = smoothedNoise(x + globalX + waterAnimX, y + globalY + waterAnimY);
 
                 r = waterNoiseAnim;
@@ -154,7 +121,7 @@ function renderMap(seed)
 
                 noise1 = (multiplier / 2);
             else
-
+                water = false
                 if (noise3 > 0.6) then
                     r = 0.5;
                     g = 0.5;
@@ -220,7 +187,30 @@ function renderMap(seed)
 
             noise1 = roundToNearestUp(noise1, multiple);
 
-            drawCube(x, y, r, g, b, rb, gb, bb, t, noise1);
+            drawCube(x, y, r, g, b, rb, gb, bb, t, noise1, not water);
+        end
+    end
+end
+
+function renderClouds()
+
+    cloudAnimX = cloudAnimX + 0.05;
+    cloudAnimY = cloudAnimY + 0.05;
+
+    if (cloudAnimX > 1000) then
+        cloudAnimX = 0;
+    end
+
+    if (cloudAnimY > 1000) then
+        cloudAnimY = 0;
+    end
+
+    for x = 0, love.graphics.getWidth() / 10 do
+        for y = 0, love.graphics.getHeight() / 10 do
+            cloudNoise = smoothedNoise((x + globalX + cloudAnimX) / 100, ((y + globalY + cloudAnimY) / 100));
+            if (cloudNoise < 0.4) then
+                drawCube(x, y, 1, 1, 1, 0.8, 0.8, 0.8, 0.05, 100);
+            end
         end
     end
 end
@@ -257,7 +247,7 @@ function calculateYDrawPoint(x, y)
     return ((x + y) * (tileHeight / 4)) + camY;
 end
 
-function drawCube(x, y, r, g, b, rBorder, gBorder, bBorder, transparency, cubeHeight)
+function drawCube(x, y, r, g, b, rBorder, gBorder, bBorder, transparency, cubeHeight, drawLines)
     limit = 1000;
     if (cubeHeight > limit) then
         cubeHeight = limit;
@@ -297,21 +287,23 @@ function drawCube(x, y, r, g, b, rBorder, gBorder, bBorder, transparency, cubeHe
         calculateXDraw(x + 1, y), calculateYDraw(x + 1, y) - cubeHeight, calculateXDraw(x, y),
         calculateYDraw(x, y) - cubeHeight);
 
-    love.graphics.setColor(0, 0, 0, 0.1);
+    if drawLines then
+        love.graphics.setColor(0, 0, 0, 1);
 
-    love.graphics.line(calculateXDraw(x, y), calculateYDraw(x, y) - cubeHeight, calculateXDraw(x, y + 1),
-        calculateYDraw(x, y + 1) - cubeHeight, calculateXDraw(x + 1, y + 1), calculateYDraw(x + 1, y + 1) - cubeHeight,
-        calculateXDraw(x + 1, y), calculateYDraw(x + 1, y) - cubeHeight, calculateXDraw(x, y),
-        calculateYDraw(x, y) - cubeHeight);
+        love.graphics.line(calculateXDraw(x, y), calculateYDraw(x, y) - cubeHeight, calculateXDraw(x, y + 1),
+            calculateYDraw(x, y + 1) - cubeHeight, calculateXDraw(x + 1, y + 1),
+            calculateYDraw(x + 1, y + 1) - cubeHeight, calculateXDraw(x + 1, y), calculateYDraw(x + 1, y) - cubeHeight,
+            calculateXDraw(x, y), calculateYDraw(x, y) - cubeHeight);
 
-    love.graphics.line(calculateXDraw(x, y + 1), calculateYDraw(x, y + 1), calculateXDraw(x, y + 1),
-        calculateYDraw(x, y + 1) - cubeHeight);
+        love.graphics.line(calculateXDraw(x, y + 1), calculateYDraw(x, y + 1), calculateXDraw(x, y + 1),
+            calculateYDraw(x, y + 1) - cubeHeight);
 
-    love.graphics.line(calculateXDraw(x + 1, y), calculateYDraw(x + 1, y), calculateXDraw(x + 1, y),
-        calculateYDraw(x + 1, y) - cubeHeight);
+        love.graphics.line(calculateXDraw(x + 1, y), calculateYDraw(x + 1, y), calculateXDraw(x + 1, y),
+            calculateYDraw(x + 1, y) - cubeHeight);
 
-    love.graphics.line(calculateXDraw(x + 1, y + 1), calculateYDraw(x + 1, y + 1), calculateXDraw(x + 1, y + 1),
-        calculateYDraw(x + 1, y + 1) - cubeHeight);
+        love.graphics.line(calculateXDraw(x + 1, y + 1), calculateYDraw(x + 1, y + 1), calculateXDraw(x + 1, y + 1),
+            calculateYDraw(x + 1, y + 1) - cubeHeight);
+    end
 end
 
 function love.keypressed(key, scancode, isrepeat)
